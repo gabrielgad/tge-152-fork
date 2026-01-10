@@ -30,7 +30,7 @@ CFLAGS.DEBUG      = -g -DTORQUE_DEBUG
 CFLAGS.RELEASE    = -O2 -finline-functions -fomit-frame-pointer
 CFLAGS.DEBUGFAST  = -O -g -finline-functions 
 
-ASMFLAGS          = -f elf64 -dLINUX
+ASMFLAGS          = -f elf -dLINUX
 
 LFLAGS.GENERAL    =
 LFLAGS.RELEASE    =
