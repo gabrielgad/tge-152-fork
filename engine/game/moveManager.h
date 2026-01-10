@@ -3,6 +3,17 @@
 // Copyright (C) GarageGames.com, Inc.
 //-----------------------------------------------------------------------------
 
+/*
+
+MMO Kit
+-------
+
+- Added absolute location/rotation
+- Added zooming
+- Added auto-forward movement
+
+*/
+
 #ifndef _MOVEMANAGER_H_
 #define _MOVEMANAGER_H_
 
@@ -18,10 +29,19 @@ struct Move
    // packed storage rep, set in clamp
    S32 px, py, pz;
    U32 pyaw, ppitch, proll;
+   S32 pzoom; // <-- MMO Kit
    F32 x, y, z;          // float -1 to 1
    F32 yaw, pitch, roll; // 0-2PI
+   F32 zoom; // <-- MMO Kit
    U32 id;               // sync'd between server & client - debugging tool.
    U32 sendCount;
+
+// Begin MMO Kit
+   //absolute location/rotation
+   F32 ax,ay,az;
+   F32 arz;
+   F32 hx,hz;
+// End MMO Kit
 
    bool freeLook;
    bool trigger[MaxTriggerKeys];
@@ -37,6 +57,7 @@ extern const Move NullMove;
 class MoveManager
 {
 public:
+   static S32 mAutoForward; // <-- MMO Kit
    static F32 mForwardAction;
    static F32 mBackwardAction;
    static F32 mUpAction;
@@ -48,6 +69,8 @@ public:
    static F32 mPitch;
    static F32 mYaw;
    static F32 mRoll;
+
+   static F32 mZoom; // <-- MMO Kit
 
    static F32 mPitchUpSpeed;
    static F32 mPitchDownSpeed;

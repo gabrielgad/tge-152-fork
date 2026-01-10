@@ -22,11 +22,11 @@
 #include "console/console.h"
 #include "console/consoleInternal.h"
 #include "console/ast.h"
-#include "console/simbase.h"
-#include "game/gamebase.h"
-#include "game/shapebase.h"
+#include "console/simBase.h"
+#include "game/gameBase.h"
+#include "game/shapeBase.h"
 #include "rpg/game/rpgPlayer.h"
-#include "game/gameconnection.h"
+#include "game/gameConnection.h"
 #include "math/mathUtils.h"
 #include "rpg/rpgWayPoint.h"
 #include "rpg/rpgSpawnPoint.h"
@@ -778,10 +778,9 @@ ConsoleFunction( MyCastRay, bool, 3, 3, "(transform1,transform2)")
 
    
 #ifdef DARREN_MMO
-   Interior::smIncludeClipHulls=true;
+   // smIncludeClipHulls not available in TGE 1.5.2
    if (gServerContainer.castRay(pos,pos2, mask, &ri))
       return false;
-   Interior::smIncludeClipHulls=false;
 #endif //DARREN_MMO
    return true;
 
@@ -1238,9 +1237,20 @@ static void InitWin32()
 #endif
 
 
+// For shared library builds, include headers and use deferred initialization
+#ifdef TORQUE_LIB
+#include "game/demoGame.h"
+#include "game/net/serverQuery.h"  // For DemoNetInterface
+#include "platformX86UNIX/x86UNIXState.h"  // For x86UNIXPlatformState
+extern DemoGame* pGameObject;
+extern DemoNetInterface* pGameNetInterface;
+extern x86UNIXPlatformState* x86UNIXState;
+#endif
+
 PyObject* Py_TorqueInit(PyObject* self,PyObject* args)
 {
-#ifdef DARREN_MMO 
+#ifdef DARREN_MMO
+   printf("DEBUG: Py_TorqueInit entered\n"); fflush(stdout);
    int i;
    static char argvv[64][256];
    static const char* argv[64];
@@ -1255,14 +1265,57 @@ PyObject* Py_TorqueInit(PyObject* self,PyObject* args)
    InitWin32();
 #endif
 
+   printf("DEBUG: Parsing Python args\n"); fflush(stdout);
    int argc = PyInt_AsLong(PyTuple_GetItem(args,0));
+   printf("DEBUG: argc = %d\n", argc); fflush(stdout);
 
    PyObject* pyargv = PyTuple_GetItem(args,1);
 
-   for (i=0;i<argc;i++)
+   for (i=0;i<argc;i++) {
       dStrcpy(argvv[i],PyString_AsString(PyList_GetItem(pyargv,i)));
+      printf("DEBUG: argv[%d] = %s\n", i, argvv[i]); fflush(stdout);
+   }
 
-   int ret = Game->init(argc,argv);
+#ifdef TORQUE_LIB
+   // For shared library builds, create platform state and game objects here
+   // This avoids static initialization order issues
+
+   // Initialize platform state (normally done in main())
+   printf("DEBUG: Creating x86UNIXPlatformState\n"); fflush(stdout);
+   if (!x86UNIXState) {
+      x86UNIXState = new x86UNIXPlatformState();
+      x86UNIXState->setExePathName(argv[0]);
+
+      // Check for -dedicated flag in command line
+      bool foundDedicated = false;
+      for (int j = 1; j < argc; j++) {
+         if (dStricmp(argv[j], "-dedicated") == 0) {
+            foundDedicated = true;
+            break;
+         }
+      }
+      x86UNIXState->setDedicated(foundDedicated);
+      printf("DEBUG: isDedicated = %d\n", foundDedicated); fflush(stdout);
+   }
+
+   printf("DEBUG: Creating DemoGame and DemoNetInterface\n"); fflush(stdout);
+   if (!pGameObject) {
+      pGameObject = new DemoGame();
+   }
+   if (!pGameNetInterface) {
+      pGameNetInterface = new DemoNetInterface();
+   }
+#endif
+
+   printf("DEBUG: Game pointer = %p\n", (void*)Game); fflush(stdout);
+   if (!Game) {
+      printf("ERROR: Game is NULL!\n"); fflush(stdout);
+      PyErr_SetString(PyExc_RuntimeError, "Game object not initialized");
+      return NULL;
+   }
+   printf("DEBUG: Calling Game->initialize()\n"); fflush(stdout);
+   int ret = Game->initialize(argc,argv);
+   printf("DEBUG: Game->initialize() returned %d\n", ret); fflush(stdout);
 
    return PyLong_FromLong(ret);
 #endif //DARREN_MMO
@@ -1303,16 +1356,16 @@ static PyMethodDef tgePyTorqueMethods[] = {
 void TGEInstallWXSupport(void);
 
 #ifdef TORQUE_OS_WIN32
-extern "C" __declspec(dllexport) void initpytge_15(void)
+extern "C" __declspec(dllexport) void initpytge(void)
 #else
-extern "C" void initpytge_15(void)
+extern "C" void initpytge(void)
 #endif
 {
 
 	//initialize the python module
-	PyObject *m, *d;  
+	PyObject *m, *d;
 
-	m = Py_InitModule("pytge_15",  tgePyTorqueMethods);
+	m = Py_InitModule("pytge",  tgePyTorqueMethods);
 
 	d = PyModule_GetDict(m);
 

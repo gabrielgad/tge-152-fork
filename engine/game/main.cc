@@ -10,6 +10,7 @@
 // Copyright (C) Faust Logic, Inc.
 //~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~~//
 
+#include <cstdio>  // For printf, fflush in debug statements
 #include "platform/platform.h"
 #include "platform/platformVideo.h"
 #include "platform/platformInput.h"
@@ -83,8 +84,15 @@
 // AFX CODE BLOCK (core) >>
 
 #ifndef BUILD_TOOLS
+// For shared library builds, use pointers to avoid static initialization order issues
+// The objects are created in Py_TorqueInit() instead of at library load time
+#ifdef TORQUE_LIB
+DemoGame* pGameObject = NULL;
+DemoNetInterface* pGameNetInterface = NULL;
+#else
 DemoGame GameObject;
 DemoNetInterface GameNetInterface;
+#endif
 #endif
 
 extern ResourceInstance *constructTerrainFile(Stream &stream);
@@ -128,53 +136,87 @@ extern void ShowInit();
 /// console...etc.
 static bool initLibraries()
 {
+   printf("DEBUG: initLibraries() - Net::init()\n"); fflush(stdout);
    if(!Net::init())
    {
       Platform::AlertOK("Network Error", "Unable to initialize the network... aborting.");
       return false;
    }
-
+   printf("DEBUG: initLibraries() - PlatformAssert::create()\n"); fflush(stdout);
    // asserts should be created FIRST
    PlatformAssert::create();
 
+   printf("DEBUG: initLibraries() - FrameAllocator::init()\n"); fflush(stdout);
    FrameAllocator::init(3 << 20);      // 3 meg frame allocator buffer
 
 //   // Cryptographic pool next
 //   CryptRandomPool::init();
 
+   printf("DEBUG: initLibraries() - _StringTable::create()\n"); fflush(stdout);
    _StringTable::create();
+   printf("DEBUG: initLibraries() - StringTable = %p\n", (void*)StringTable); fflush(stdout);
+
+   // Console must be initialized before TextureManager (TextureDictionary calls Con::addVariable)
+   printf("DEBUG: initLibraries() - Con::init()\n"); fflush(stdout);
+   Con::init();
+
+   printf("DEBUG: initLibraries() - TextureManager::create()\n"); fflush(stdout);
    TextureManager::create();
+   printf("DEBUG: initLibraries() - ResManager::create()\n"); fflush(stdout);
    ResManager::create();
 
+   printf("DEBUG: initLibraries() - ResourceManager = %p\n", (void*)ResourceManager); fflush(stdout);
    // Register known file types here
+   printf("DEBUG: initLibraries() - registering .jpg\n"); fflush(stdout);
    ResourceManager->registerExtension(".jpg", constructBitmapJPEG);
+   printf("DEBUG: initLibraries() - registering .png\n"); fflush(stdout);
    ResourceManager->registerExtension(".png", constructBitmapPNG);
+   printf("DEBUG: initLibraries() - registering .gif\n"); fflush(stdout);
    ResourceManager->registerExtension(".gif", constructBitmapGIF);
+   printf("DEBUG: initLibraries() - registering .dbm\n"); fflush(stdout);
    ResourceManager->registerExtension(".dbm", constructBitmapDBM);
+   printf("DEBUG: initLibraries() - registering .bmp\n"); fflush(stdout);
    ResourceManager->registerExtension(".bmp", constructBitmapBMP);
+   printf("DEBUG: initLibraries() - registering .bm8\n"); fflush(stdout);
    ResourceManager->registerExtension(".bm8", constructBitmapBM8);
+   printf("DEBUG: initLibraries() - registering .uft\n"); fflush(stdout);
    ResourceManager->registerExtension(".uft", constructFont);
+   printf("DEBUG: initLibraries() - registering .dif\n"); fflush(stdout);
    ResourceManager->registerExtension(".dif", constructInteriorDIF);
+   printf("DEBUG: initLibraries() - registering .ter\n"); fflush(stdout);
    ResourceManager->registerExtension(".ter", constructTerrainFile);
+   printf("DEBUG: initLibraries() - registering .dts\n"); fflush(stdout);
    ResourceManager->registerExtension(".dts", constructTSShape);
+   printf("DEBUG: initLibraries() - registering .dml\n"); fflush(stdout);
    ResourceManager->registerExtension(".dml", constructMaterialList);
+   printf("DEBUG: initLibraries() - registering .map\n"); fflush(stdout);
    ResourceManager->registerExtension(".map", constructInteriorMAP);
 
-   Con::init();
+   printf("DEBUG: initLibraries() - NetStringTable::create()\n"); fflush(stdout);
    NetStringTable::create();
-
+   printf("DEBUG: initLibraries() - TelnetConsole::create()\n"); fflush(stdout);
    TelnetConsole::create();
+   printf("DEBUG: initLibraries() - TelnetDebugger::create()\n"); fflush(stdout);
    TelnetDebugger::create();
 
+   printf("DEBUG: initLibraries() - Processor::init()\n"); fflush(stdout);
    Processor::init();
+   printf("DEBUG: initLibraries() - Math::init()\n"); fflush(stdout);
    Math::init();
+   printf("DEBUG: initLibraries() - Platform::init()\n"); fflush(stdout);
    Platform::init();    // platform specific initialization
+   printf("DEBUG: initLibraries() - InteriorLMManager::init()\n"); fflush(stdout);
    InteriorLMManager::init();
+   printf("DEBUG: initLibraries() - InteriorInstance::init()\n"); fflush(stdout);
    InteriorInstance::init();
+   printf("DEBUG: initLibraries() - TSShapeInstance::init()\n"); fflush(stdout);
    TSShapeInstance::init();
+   printf("DEBUG: initLibraries() - RedBook::init()\n"); fflush(stdout);
    RedBook::init();
+   printf("DEBUG: initLibraries() - Platform::initConsole()\n"); fflush(stdout);
    Platform::initConsole();
 
+   printf("DEBUG: initLibraries() completed successfully\n"); fflush(stdout);
    return true;
 }
 
@@ -418,6 +460,7 @@ int DemoGame::main(int argc, const char **argv)
 
 int DemoGame::initialize(int argc, const char **argv)
 {
+   printf("DEBUG: DemoGame::initialize() entered\n"); fflush(stdout);
 //   if (argc == 1) {
 //      static const char* argvFake[] = { "dtest.exe", "-jload", "test.jrn" };
 //      argc = 3;
@@ -427,9 +470,12 @@ int DemoGame::initialize(int argc, const char **argv)
 //   Memory::enableLogging("testMem.log");
 //   Memory::setBreakAlloc(104717);
 
+   printf("DEBUG: Calling initLibraries()\n"); fflush(stdout);
    if(!initLibraries())
       return 0;
+   printf("DEBUG: initLibraries() complete\n"); fflush(stdout);
 
+   printf("DEBUG: Setting Game::argc\n"); fflush(stdout);
 #ifdef IHVBUILD
    char* pVer = new char[sgVerStringLen + 1];
    U32 hi;
@@ -451,10 +497,15 @@ int DemoGame::initialize(int argc, const char **argv)
 #endif
 
    // Set up the command line args for the console scripts...
+   printf("DEBUG: Con::setIntVariable Game::argc\n"); fflush(stdout);
    Con::setIntVariable("Game::argc", argc);
+   printf("DEBUG: Setting Game::argv variables\n"); fflush(stdout);
    U32 i;
-   for (i = 0; i < argc; i++)
+   for (i = 0; i < argc; i++) {
+      printf("DEBUG: Setting Game::argv%d = %s\n", i, argv[i]); fflush(stdout);
       Con::setVariable(avar("Game::argv%d", i), argv[i]);
+   }
+   printf("DEBUG: Calling initGame()\n"); fflush(stdout);
    if (initGame(argc, argv) == false)
    {
       Platform::AlertOK("Error", "Failed to initialize game, shutting down.");

@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <fcntl.h>
+#include <sys/select.h>
+#include <sys/time.h>
 
 StdConsole *stdConsole = NULL;
 

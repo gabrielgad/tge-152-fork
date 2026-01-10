@@ -75,6 +75,11 @@ CollisionTest collisionTest;
 
 F32 gMovementSpeed = 1;
 
+// Begin MMO Kit
+bool gGamePaused = false;
+F32 gPrefGuiOpacity = 1.f;
+// End MMO Kit
+
 //--------------------------------------------------------------------------
 ConsoleFunctionGroupBegin( GameFunctions, "General game functionality.");
 

@@ -40,13 +40,12 @@ ConsoleMethod( rpgSpawnPoint, getGroundTransform, const char*, 2, 2, "Get transf
    pos.z+=1.f;
    pos2.z-=20.f;
 #ifdef DARREN_MMO
-   Interior::smIncludeClipHulls=true;
+   // Note: Interior::smIncludeClipHulls removed in this TGE version
    if (gServerContainer.castRay(pos,pos2, mask, &ri))
    {
       pos=ri.point;
       pos.z+=.1f;
    }
-   Interior::smIncludeClipHulls=false;
 #endif //DARREN_MMO
    mat.setPosition(pos);
    

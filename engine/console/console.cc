@@ -21,7 +21,8 @@
 
 extern StringStack STR;
 
-ExprEvalState gEvalState;
+// Pointer for lazy initialization to avoid static init order issues in shared libraries
+ExprEvalState* gEvalState = NULL;
 StmtNode *statementList;
 ConsoleConstructor *ConsoleConstructor::first = NULL;
 bool gWarnUndefinedScriptVariables;
@@ -34,7 +35,7 @@ CON_DECLARE_PARSER(BAS);
 // TO-DO: Console debugger stuff to be cleaned up later
 static S32 dbgGetCurrentFrame(void)
 {
-   return gEvalState.stack.size() - 1;
+   return gEvalState->stack.size() - 1;
 }
 
 static const char * prependDollar ( const char * name )
@@ -155,10 +156,10 @@ ConsoleConstructor::ConsoleConstructor(const char* className, const char* groupN
 namespace Con
 {
 
-static Vector<ConsumerCallback> gConsumers(__FILE__, __LINE__);
-static DataChunker consoleLogChunker;
-static Vector<ConsoleLogEntry> consoleLog(__FILE__, __LINE__);
-static bool consoleLogLocked;
+static Vector<ConsumerCallback>* gConsumers = NULL;
+static DataChunker* consoleLogChunker = NULL;
+static Vector<ConsoleLogEntry>* consoleLog = NULL;
+static bool consoleLogLocked = false;
 static bool logBufferEnabled=true;
 static S32 printLevel = 10;
 static FileStream consoleLogFile;
@@ -194,8 +195,8 @@ ConsoleFunction( cls, void, 1, 1, "Clear the screen.")
 {
    if(consoleLogLocked)
       return;
-   consoleLogChunker.freeBlocks();
-   consoleLog.setSize(0);
+   consoleLogChunker->freeBlocks();
+   consoleLog->setSize(0);
 };
 
 ConsoleFunction( getClipboard, const char*, 1, 1, "Get text from the clipboard.")
@@ -213,42 +214,78 @@ ConsoleFunctionGroupEnd( Clipboard );
 
 void init()
 {
+   ::printf("DEBUG: Con::init() entered\n"); fflush(stdout);
    AssertFatal(active == false, "Con::init should only be called once.");
+
+   // Initialize gEvalState if not already done (lazy init for shared library compatibility)
+   if (!gEvalState) {
+      ::printf("DEBUG: Con::init() - creating gEvalState\n"); fflush(stdout);
+      gEvalState = new ExprEvalState();
+   }
+
+   // Initialize vectors (lazy init for shared library compatibility - avoids SIOF)
+   if (!gConsumers) {
+      ::printf("DEBUG: Con::init() - creating gConsumers\n"); fflush(stdout);
+      gConsumers = new Vector<ConsumerCallback>();
+   }
+   if (!consoleLogChunker) {
+      ::printf("DEBUG: Con::init() - creating consoleLogChunker\n"); fflush(stdout);
+      consoleLogChunker = new DataChunker();
+   }
+   if (!consoleLog) {
+      ::printf("DEBUG: Con::init() - creating consoleLog\n"); fflush(stdout);
+      consoleLog = new Vector<ConsoleLogEntry>();
+   }
 
    // Set up general init values.
    active                        = true;
    logFileName                   = NULL;
    newLogFile                    = true;
    gWarnUndefinedScriptVariables = false;
+   ::printf("DEBUG: Con::init() - basic vars set\n"); fflush(stdout);
 
 #ifdef TORQUE_MULTITHREAD
    // Note the main thread ID.
    gMainThreadID = Thread::getCurrentThreadId();
+   ::printf("DEBUG: Con::init() - thread ID set\n"); fflush(stdout);
 #endif
 
    // Initialize subsystems.
+   ::printf("DEBUG: Con::init() - Namespace::init()\n"); fflush(stdout);
    Namespace::init();
+   ::printf("DEBUG: Con::init() - ConsoleConstructor::setup()\n"); fflush(stdout);
    ConsoleConstructor::setup();
 
    // Set up the parser(s)
+   ::printf("DEBUG: Con::init() - adding parsers\n"); fflush(stdout);
    CON_ADD_PARSER(CMD,   "cs",   true);   // TorqueScript
    CON_ADD_PARSER(BAS,   "bas",  false);  // TorqueBasic
 
    // Variables
+   ::printf("DEBUG: Con::init() - setting variables\n"); fflush(stdout);
+   ::printf("DEBUG: Con::init() - setVariable Con::prompt\n"); fflush(stdout);
    setVariable("Con::prompt", "% ");
+   ::printf("DEBUG: Con::init() - addVariable Con::logBufferEnabled\n"); fflush(stdout);
    addVariable("Con::logBufferEnabled", TypeBool, &logBufferEnabled);
+   ::printf("DEBUG: Con::init() - addVariable Con::printLevel\n"); fflush(stdout);
    addVariable("Con::printLevel", TypeS32, &printLevel);
+   ::printf("DEBUG: Con::init() - addVariable Con::warnUndefinedVariables\n"); fflush(stdout);
    addVariable("Con::warnUndefinedVariables", TypeBool, &gWarnUndefinedScriptVariables);
 
    // Current script file name and root
+   ::printf("DEBUG: Con::init() - addVariable Con::File\n"); fflush(stdout);
    Con::addVariable( "Con::File", TypeString, &gCurrentFile );
+   ::printf("DEBUG: Con::init() - addVariable Con::Root\n"); fflush(stdout);
    Con::addVariable( "Con::Root", TypeString, &gCurrentRoot );
 
    // Setup the console types.
+   ::printf("DEBUG: Con::init() - ConsoleBaseType::initialize()\n"); fflush(stdout);
    ConsoleBaseType::initialize();
 
    // And finally, the ACR...
+   ::printf("DEBUG: Con::init() - AbstractClassRep::initialize()\n"); fflush(stdout);
    AbstractClassRep::initialize();
+   ::printf("DEBUG: Con::init() completed\n"); fflush(stdout);
 }
 
 //--------------------------------------
@@ -282,8 +319,8 @@ bool isMainThread()
 void getLockLog(ConsoleLogEntry *&log, U32 &size)
 {
    consoleLogLocked = true;
-   log = &consoleLog[0];
-   size = consoleLog.size();
+   log = &(*consoleLog)[0];
+   size = consoleLog->size();
 }
 
 void unlockLog()
@@ -374,7 +411,7 @@ U32 tabComplete(char* inputBuffer, U32 cursorPos, U32 maxResultLength, bool forw
       // In the global namespace, we can complete on global vars as well as functions.
       if (inputBuffer[completionBaseStart] == '$')
       {
-         newText = gEvalState.globalVars.tabComplete(inputBuffer + completionBaseStart, completionBaseLen, forwardTab);
+         newText = gEvalState->globalVars.tabComplete(inputBuffer + completionBaseStart, completionBaseLen, forwardTab);
       }
       else 
       {
@@ -470,16 +507,16 @@ static void _printf(ConsoleLogEntry::Level level, ConsoleLogEntry::Type type, co
 {
    char buffer[4096];
    U32 offset = 0;
-   if(gEvalState.traceOn && gEvalState.stack.size())
+   if(gEvalState->traceOn && gEvalState->stack.size())
    {
-      offset = gEvalState.stack.size() * 3;
+      offset = gEvalState->stack.size() * 3;
       for(U32 i = 0; i < offset; i++)
          buffer[i] = ' ';
    }
    dVsprintf(buffer + offset, sizeof(buffer) - offset, fmt, argptr);
 
-   for(U32 i = 0; i < gConsumers.size(); i++)
-      gConsumers[i](level, buffer);
+   for(U32 i = 0; i < gConsumers->size(); i++)
+      (*gConsumers)[i](level, buffer);
 
    if(logBufferEnabled || consoleLogMode)
    {
@@ -504,9 +541,9 @@ static void _printf(ConsoleLogEntry::Level level, ConsoleLogEntry::Type type, co
             ConsoleLogEntry entry;
             entry.mLevel  = level;
             entry.mType   = type;
-            entry.mString = (const char *)consoleLogChunker.alloc(dStrlen(pos) + 1);
+            entry.mString = (const char *)consoleLogChunker->alloc(dStrlen(pos) + 1);
             dStrcpy(const_cast<char*>(entry.mString), pos);
-            consoleLog.push_back(entry);
+            consoleLog->push_back(entry);
          }
          if(!eofPos)
             break;
@@ -561,13 +598,13 @@ void errorf(const char* fmt,...)
 void setVariable(const char *name, const char *value)
 {
    name = prependDollar(name);
-   gEvalState.globalVars.setVariable(StringTable->insert(name), value);
+   gEvalState->globalVars.setVariable(StringTable->insert(name), value);
 }
 
 void setLocalVariable(const char *name, const char *value)
 {
    name = prependPercent(name);
-   gEvalState.stack.last()->setVariable(StringTable->insert(name), value);
+   gEvalState->stack.last()->setVariable(StringTable->insert(name), value);
 }
 
 void setBoolVariable(const char *varName, bool value)
@@ -592,16 +629,16 @@ void setFloatVariable(const char *varName, F32 value)
 //---------------------------------------------------------------------------
 void addConsumer(ConsumerCallback consumer)
 {
-   gConsumers.push_back(consumer);
+   gConsumers->push_back(consumer);
 }
 
 // dhc - found this empty -- trying what I think is a reasonable impl.
 void removeConsumer(ConsumerCallback consumer)
 {
-   for(U32 i = 0; i < gConsumers.size(); i++)
-      if (gConsumers[i] == consumer)
+   for(U32 i = 0; i < gConsumers->size(); i++)
+      if ((*gConsumers)[i] == consumer)
       { // remove it from the list.
-         gConsumers.erase(i);
+         gConsumers->erase(i);
          break;
       }
 }
@@ -671,14 +708,14 @@ const char *getVariable(const char *name)
    }
 
    name = prependDollar(name);
-   return gEvalState.globalVars.getVariable(StringTable->insert(name));
+   return gEvalState->globalVars.getVariable(StringTable->insert(name));
 }
 
 const char *getLocalVariable(const char *name)
 {
    name = prependPercent(name);
 
-   return gEvalState.stack.last()->getVariable(StringTable->insert(name));
+   return gEvalState->stack.last()->getVariable(StringTable->insert(name));
 }
 
 bool getBoolVariable(const char *varName, bool def)
@@ -703,14 +740,14 @@ F32 getFloatVariable(const char *varName, F32 def)
 
 bool addVariable(const char *name, S32 t, void *dp)
 {
-   gEvalState.globalVars.addVariable(name, t, dp);
+   gEvalState->globalVars.addVariable(name, t, dp);
    return true;
 }
 
 bool removeVariable(const char *name)
 {
    name = StringTable->lookup(prependDollar(name));
-   return name!=0 && gEvalState.globalVars.removeVariable(name);
+   return name!=0 && gEvalState->globalVars.removeVariable(name);
 }
 
 //---------------------------------------------------------------------------
@@ -857,12 +894,19 @@ const char *evaluate(const char* string, bool echo, const char *fileName)
 //------------------------------------------------------------------------------
 const char *evaluatef(const char* string, ...)
 {
+   ::printf("DEBUG: Con::evaluatef entered with: %s\n", string); fflush(stdout);
    char buffer[4096];
    va_list args;
    va_start(args, string);
+   ::printf("DEBUG: Con::evaluatef calling dVsprintf\n"); fflush(stdout);
    dVsprintf(buffer, sizeof(buffer), string, args);
+   ::printf("DEBUG: Con::evaluatef buffer = %s\n", buffer); fflush(stdout);
+   ::printf("DEBUG: Con::evaluatef creating CodeBlock\n"); fflush(stdout);
    CodeBlock *newCodeBlock = new CodeBlock();
-   return newCodeBlock->compileExec(NULL, buffer, false, 0);
+   ::printf("DEBUG: Con::evaluatef calling compileExec\n"); fflush(stdout);
+   const char* result = newCodeBlock->compileExec(NULL, buffer, false, 0);
+   ::printf("DEBUG: Con::evaluatef completed\n"); fflush(stdout);
+   return result;
 }
 
 const char *execute(S32 argc, const char *argv[])
@@ -883,7 +927,7 @@ const char *execute(S32 argc, const char *argv[])
          STR.clearFunctionOffset();
          return "";
       }
-      return ent->execute(argc, argv, &gEvalState);
+      return ent->execute(argc, argv, gEvalState);
 #ifdef TORQUE_MULTITHREAD
    }
    else
@@ -922,10 +966,10 @@ const char *execute(SimObject *object, S32 argc, const char *argv[])
       }
       else
       {
-         SimObject *save = gEvalState.thisObject;
-         gEvalState.thisObject = object;
-         const char *ret = ent->execute(argc, argv, &gEvalState);
-         gEvalState.thisObject = save;
+         SimObject *save = gEvalState->thisObject;
+         gEvalState->thisObject = object;
+         const char *ret = ent->execute(argc, argv, gEvalState);
+         gEvalState->thisObject = save;
          return ret;
       }
    }

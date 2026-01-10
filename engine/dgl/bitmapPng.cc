@@ -132,7 +132,7 @@ bool GBitmap::readPNG(Stream& io_rStream)
    }
 
    // Enable optimizations if appropriate.
-#if defined(PNG_LIBPNG_VER) && (PNG_LIBPNG_VER >= 10200)
+#if defined(PNG_LIBPNG_VER) && (PNG_LIBPNG_VER >= 10200) && (PNG_LIBPNG_VER < 10400)
    png_uint_32 mask, flags;
 
    flags = png_get_asm_flags(png_ptr);
@@ -323,8 +323,8 @@ bool GBitmap::_writePNG(Stream&   stream,
    png_set_write_fn(png_ptr, NULL, pngWriteDataFn, pngFlushDataFn);
 
    // Set the compression level, image filters, and compression strategy...
-   png_ptr->flags        |= PNG_FLAG_ZLIB_CUSTOM_STRATEGY;
-   png_ptr->zlib_strategy = strategy;
+   // Modern libpng: use png_set_compression_strategy instead
+   png_set_compression_strategy(png_ptr, strategy);
    png_set_compression_window_bits(png_ptr, 15);
    png_set_compression_level(png_ptr, compressionLevel);
    png_set_filter(png_ptr, 0, filter);

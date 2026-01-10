@@ -16,7 +16,7 @@ CodeBlock *    CodeBlock::smCodeBlockList = NULL;
 CodeBlock *    CodeBlock::smCurrentCodeBlock = NULL;
 ConsoleParser *CodeBlock::smCurrentParser = NULL;
 
-//StringTableEntry CodeBlock::sfnNameSpace = NULL; // pytorque
+StringTableEntry CodeBlock::sfnNameSpace = NULL; // pytorque
 
 //-------------------------------------------------------------------------
 

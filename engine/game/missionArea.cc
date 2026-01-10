@@ -12,6 +12,11 @@ IMPLEMENT_CO_NETOBJECT_V1(MissionArea);
 
 RectI MissionArea::smMissionArea(Point2I(768, 768), Point2I(512, 512));
 
+// Begin MMO Kit
+//hack!
+MissionArea* gClientMissionArea = NULL;
+// End MMO Kit
+
 //------------------------------------------------------------------------------
 
 MissionArea::MissionArea()
@@ -21,6 +26,7 @@ MissionArea::MissionArea()
 
    mFlightCeiling      = 2000;
    mFlightCeilingRange = 50;
+   mStratosphere = -1.f; // <-- MMO Kit
 }
 
 //------------------------------------------------------------------------------

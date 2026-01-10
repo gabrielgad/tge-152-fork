@@ -63,6 +63,7 @@ struct rpgPlayerData: public ShapeBaseData {
 // Begin MMO Kit
    F32 radius;
    F32 scale;
+   F32 scaleLimit;                  ///< Maximum scale limit (restored - was missing)
 // End MMO Kit
 
    F32 minLookAngle;          ///< Lowest angle (radians) the player can look
@@ -335,10 +336,9 @@ protected:
    Point3F mHead;                   ///< Head rotation, uses only x & z
    Point3F mRot;                    ///< Body rotation, uses only z
 // Begin MMO Kit
-/* Original TGE Code:
-   VectorF mVelocity;
-*/
+   VectorF mVelocity;               ///< Velocity (restored - was incorrectly commented out)
    Point3F mAnchorPoint;            ///< Pos compression anchor
+   S32 mRealm;                      ///< Realm for PvP grouping (restored - was missing)
 // End MMO Kit
    static F32 mGravity;             ///< Gravity
    S32 mImpactSound;
@@ -647,6 +647,9 @@ public:
    bool mSimZombie;
    bool mCanKite;
    bool mPlayerPet;
+   bool mTwoHanded;              ///< Two-handed weapon flag (restored)
+   StringTableEntry mRole;       ///< Role string (restored)
+   F32  mCameraZoom;             ///< Camera zoom distance (restored)
 
    F32  mAggroRange;
 

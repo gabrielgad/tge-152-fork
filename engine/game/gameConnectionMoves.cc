@@ -3,6 +3,17 @@
 // Copyright (C) GarageGames.com, Inc.
 //-----------------------------------------------------------------------------
 
+/*
+
+MMO Kit
+-------
+
+- Added absolute location/rotation
+- Added zooming
+- Added auto-forward movement
+
+*/
+
 #include "platform/platform.h"
 #include "core/dnet.h"
 #include "console/consoleTypes.h"
@@ -16,6 +27,7 @@
 #include "sceneGraph/sceneGraph.h"
 #include "game/gameConnectionEvents.h"
 
+S32 MoveManager::mAutoForward = 0;  // <-- MMO Kit
 F32 MoveManager::mForwardAction = 0;
 F32 MoveManager::mBackwardAction = 0;
 F32 MoveManager::mUpAction = 0;
@@ -27,6 +39,8 @@ bool MoveManager::mFreeLook = false;
 F32 MoveManager::mPitch = 0;
 F32 MoveManager::mYaw = 0;
 F32 MoveManager::mRoll = 0;
+
+F32 MoveManager::mZoom = 0;  // <-- MMO Kit
 
 F32 MoveManager::mPitchUpSpeed = 0;
 F32 MoveManager::mPitchDownSpeed = 0;
@@ -44,9 +58,12 @@ const Move NullMove =
 {
    16,16,16,
    0,0,0,
+   16,  // pzoom  // <-- MMO Kit
    0,0,0,   // x,y,z
    0,0,0,   // Yaw, pitch, roll,
+   0,  // zoom  // <-- MMO Kit
    0,0,
+   0,0,0,0,0,0,  // ax,ay,az,arz,hx,hz  // <-- MMO Kit
 
    false,
    false,false,false,false,false,false

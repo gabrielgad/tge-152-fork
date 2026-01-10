@@ -2,7 +2,9 @@
 // Torque Game Engine
 // Copyright (C) GarageGames.com, Inc.
 //-----------------------------------------------------------------------------
+#ifndef DEDICATED
 #include <afx/ui/afxTSCtrl.h>
+#endif
 
 #include "console/console.h"
 #include "console/consoleTypes.h"
@@ -154,33 +156,41 @@ void GuiChunkedBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
 }
 
 void GuiChunkedBitmapCtrl::onMouseDown(const GuiEvent &evt)
-{   
+{
 	const char * ret = Con::executef(this, 1, "onMouseDown");
 	if (ret[0] == '1') return; // event eaten
-	afxTSCtrl *owner = dynamic_cast<afxTSCtrl*>(getParent());   
+#ifndef DEDICATED
+	afxTSCtrl *owner = dynamic_cast<afxTSCtrl*>(getParent());
 	if (owner ) owner->onMouseDown(evt);
+#endif
 }
 
 void GuiChunkedBitmapCtrl::onMouseUp(const GuiEvent& evt)
 {
 	const char * ret = Con::executef(this, 1, "onMouseUp");
 	if (ret[0] == '1') return; // event eaten
-	afxTSCtrl *owner = dynamic_cast<afxTSCtrl*>(getParent());   
+#ifndef DEDICATED
+	afxTSCtrl *owner = dynamic_cast<afxTSCtrl*>(getParent());
 	if (owner ) owner->onMouseUp(evt);
+#endif
 }
 
 void GuiChunkedBitmapCtrl::onRightMouseDown(const GuiEvent& evt)
 {
 	const char * ret = Con::executef(this, 1, "onRightMouseDown");
 	if (ret[0] == '1') return; // event eaten
-	afxTSCtrl *owner = dynamic_cast<afxTSCtrl*>(getParent());   
+#ifndef DEDICATED
+	afxTSCtrl *owner = dynamic_cast<afxTSCtrl*>(getParent());
 	if (owner ) owner->onRightMouseDown(evt);
+#endif
 }
 
 void GuiChunkedBitmapCtrl::onRightMouseUp(const GuiEvent& evt)
 {
 	const char * ret = Con::executef(this, 1, "onRightMouseUp");
 	if (ret[0] == '1') return; // event eaten
-	afxTSCtrl *owner = dynamic_cast<afxTSCtrl*>(getParent());   
+#ifndef DEDICATED
+	afxTSCtrl *owner = dynamic_cast<afxTSCtrl*>(getParent());
 	if (owner ) owner->onRightMouseUp(evt);
+#endif
 }

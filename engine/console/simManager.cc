@@ -30,12 +30,12 @@ namespace Sim
 //---------------------------------------------------------------------------
 // event queue variables:
 
-SimTime gCurrentTime;
-SimTime gTargetTime;
+SimTime gCurrentTime = 0;
+SimTime gTargetTime = 0;
 
-void *gEventQueueMutex;
-SimEvent *gEventQueue;
-U32 gEventSequence;
+void *gEventQueueMutex = NULL;
+SimEvent *gEventQueue = NULL;
+U32 gEventSequence = 0;
 
 //---------------------------------------------------------------------------
 // event queue init/shutdown
@@ -253,9 +253,9 @@ U32 getTargetTime()
 //---------------------------------------------------------------------------
 
 SimGroup *gRootGroup = NULL;
-SimManagerNameDictionary *gNameDictionary;
-SimIdDictionary *gIdDictionary;
-U32 gNextObjectId;
+SimManagerNameDictionary *gNameDictionary = NULL;
+SimIdDictionary *gIdDictionary = NULL;
+U32 gNextObjectId = 0;
 
 static void initRoot()
 {

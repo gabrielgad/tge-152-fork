@@ -214,7 +214,7 @@ const char *CodeBlock::exec(U32 ip, const char *functionName, Namespace *thisNam
       U32 fnArgc = code[ip + 5];
       thisFunctionName = U32toSTE(code[ip]);
       argc = getMin(argc-1, fnArgc); // argv[0] is func name
-      if(gEvalState.traceOn)
+      if(gEvalState->traceOn)
       {
          traceBuffer[0] = 0;
          dStrcat(traceBuffer, "Entering ");
@@ -243,13 +243,13 @@ const char *CodeBlock::exec(U32 ip, const char *functionName, Namespace *thisNam
          dStrcat(traceBuffer, ")");
          Con::printf("%s", traceBuffer);
       }
-      gEvalState.pushFrame(thisFunctionName, thisNamespace);
+      gEvalState->pushFrame(thisFunctionName, thisNamespace);
       popFrame = true;
       for(i = 0; i < argc; i++)
       {
          StringTableEntry var = U32toSTE(code[ip + i + 6]);
-         gEvalState.setCurVarNameCreate(var);
-         gEvalState.setStringVariable(argv[i+1]);
+         gEvalState->setCurVarNameCreate(var);
+         gEvalState->setStringVariable(argv[i+1]);
       }
       ip = ip + fnArgc + 6;
       curFloatTable = functionFloats;
@@ -263,17 +263,17 @@ const char *CodeBlock::exec(U32 ip, const char *functionName, Namespace *thisNam
       // Do we want this code to execute using a new stack frame?
       if (setFrame < 0)
       {
-         gEvalState.pushFrame(NULL, NULL);
+         gEvalState->pushFrame(NULL, NULL);
          popFrame = true;
       }
-      else if (!gEvalState.stack.empty())
+      else if (!gEvalState->stack.empty())
       {
          // We want to copy a reference to an existing stack frame
          // on to the top of the stack.  Any change that occurs to 
          // the locals during this new frame will also occur in the 
          // original frame.
-         S32 stackIndex = gEvalState.stack.size() - setFrame - 1;
-         gEvalState.pushFrameRef( stackIndex );
+         S32 stackIndex = gEvalState->stack.size() - setFrame - 1;
+         gEvalState->pushFrameRef( stackIndex );
          popFrame = true;
       }
    }
@@ -724,50 +724,50 @@ breakContinue:
          case OP_SETCURVAR:
             var = U32toSTE(code[ip]);
             ip++;
-            gEvalState.setCurVarName(var);
+            gEvalState->setCurVarName(var);
             break;
 
          case OP_SETCURVAR_CREATE:
             var = U32toSTE(code[ip]);
             ip++;
-            gEvalState.setCurVarNameCreate(var);
+            gEvalState->setCurVarNameCreate(var);
             break;
 
          case OP_SETCURVAR_ARRAY:
             var = STR.getSTValue();
-            gEvalState.setCurVarName(var);
+            gEvalState->setCurVarName(var);
             break;
 
          case OP_SETCURVAR_ARRAY_CREATE:
             var = STR.getSTValue();
-            gEvalState.setCurVarNameCreate(var);
+            gEvalState->setCurVarNameCreate(var);
             break;
 
          case OP_LOADVAR_UINT:
-            intStack[UINT+1] = gEvalState.getIntVariable();
+            intStack[UINT+1] = gEvalState->getIntVariable();
             UINT++;
             break;
 
          case OP_LOADVAR_FLT:
-            floatStack[FLT+1] = gEvalState.getFloatVariable();
+            floatStack[FLT+1] = gEvalState->getFloatVariable();
             FLT++;
             break;
 
          case OP_LOADVAR_STR:
-            val = gEvalState.getStringVariable();
+            val = gEvalState->getStringVariable();
             STR.setStringValue(val);
             break;
 
          case OP_SAVEVAR_UINT:
-            gEvalState.setIntVariable(intStack[UINT]);
+            gEvalState->setIntVariable(intStack[UINT]);
             break;
 
          case OP_SAVEVAR_FLT:
-            gEvalState.setFloatVariable(floatStack[FLT]);
+            gEvalState->setFloatVariable(floatStack[FLT]);
             break;
 
          case OP_SAVEVAR_STR:
-            gEvalState.setStringVariable(STR.getStringValue());
+            gEvalState->setStringVariable(STR.getStringValue());
             break;
 
          case OP_SETCUROBJECT:
@@ -929,10 +929,10 @@ breakContinue:
             fnName = U32toSTE(code[ip]);
 
             //if this is called from inside a function, append the ip and codeptr
-            if (!gEvalState.stack.empty())
+            if (!gEvalState->stack.empty())
             {
-               gEvalState.stack.last()->code = this;
-               gEvalState.stack.last()->ip = ip - 1;
+               gEvalState->stack.last()->code = this;
+               gEvalState->stack.last()->ip = ip - 1;
             }
 
             U32 callType = code[ip+2];
@@ -946,15 +946,15 @@ breakContinue:
             }
             else if(callType == FuncCallExprNode::MethodCall)
             {
-               saveObject = gEvalState.thisObject;
-               gEvalState.thisObject = Sim::findObject(callArgv[1]);
-               if(!gEvalState.thisObject)
+               saveObject = gEvalState->thisObject;
+               gEvalState->thisObject = Sim::findObject(callArgv[1]);
+               if(!gEvalState->thisObject)
                {
-                  gEvalState.thisObject = 0;
+                  gEvalState->thisObject = 0;
                   Con::warnf(ConsoleLogEntry::General,"%s: Unable to find object: '%s' attempting to call function '%s'", getFileLine(ip-4), callArgv[1], fnName);
                   break;
                }
-               ns = gEvalState.thisObject->getNamespace();
+               ns = gEvalState->thisObject->getNamespace();
                if(ns)
                   nsEntry = ns->lookup(fnName);
                else
@@ -985,8 +985,8 @@ breakContinue:
                   if(callType == FuncCallExprNode::MethodCall)
                   {
                      Con::warnf(ConsoleLogEntry::General, "  Object %s(%d) %s",
-                           gEvalState.thisObject->getName() ? gEvalState.thisObject->getName() : "",
-                           gEvalState.thisObject->getId(), getNamespaceList(ns) );
+                           gEvalState->thisObject->getName() ? gEvalState->thisObject->getName() : "",
+                           gEvalState->thisObject->getId(), getNamespaceList(ns) );
                   }
                }
                STR.setStringValue("");
@@ -1014,7 +1014,7 @@ breakContinue:
                   {
                      case Namespace::Entry::StringCallbackType:
                      {
-                        const char *ret = nsEntry->cb.mStringCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                        const char *ret = nsEntry->cb.mStringCallbackFunc(gEvalState->thisObject, callArgc, callArgv);
                         if(ret != STR.getStringValue())
                            STR.setStringValue(ret);
                         else
@@ -1023,7 +1023,7 @@ breakContinue:
                      }
                      case Namespace::Entry::IntCallbackType:
                      {
-                        S32 result = nsEntry->cb.mIntCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                        S32 result = nsEntry->cb.mIntCallbackFunc(gEvalState->thisObject, callArgc, callArgv);
                         if(code[ip] == OP_STR_TO_UINT)
                         {
                            ip++;
@@ -1044,7 +1044,7 @@ breakContinue:
                      }
                      case Namespace::Entry::FloatCallbackType:
                      {
-                        F64 result = nsEntry->cb.mFloatCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                        F64 result = nsEntry->cb.mFloatCallbackFunc(gEvalState->thisObject, callArgc, callArgv);
                         if(code[ip] == OP_STR_TO_UINT)
                         {
                            ip++;
@@ -1064,14 +1064,14 @@ breakContinue:
                         break;
                      }
                      case Namespace::Entry::VoidCallbackType:
-                        nsEntry->cb.mVoidCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                        nsEntry->cb.mVoidCallbackFunc(gEvalState->thisObject, callArgc, callArgv);
                         if(code[ip] != OP_STR_TO_NONE)
                            Con::warnf(ConsoleLogEntry::General, "%s: Call to %s in %s uses result of void function call.", getFileLine(ip-4), fnName, functionName);
                         STR.setStringValue("");
                         break;
                      case Namespace::Entry::BoolCallbackType:
                      {
-                        bool result = nsEntry->cb.mBoolCallbackFunc(gEvalState.thisObject, callArgc, callArgv);
+                        bool result = nsEntry->cb.mBoolCallbackFunc(gEvalState->thisObject, callArgc, callArgv);
                         if(code[ip] == OP_STR_TO_UINT)
                         {
                            ip++;
@@ -1095,7 +1095,7 @@ breakContinue:
             }
 
             if(callType == FuncCallExprNode::MethodCall)
-               gEvalState.thisObject = saveObject;
+               gEvalState->thisObject = saveObject;
             break;
          }
          case OP_ADVANCE_STR:
@@ -1134,9 +1134,9 @@ breakContinue:
          case OP_BREAK:
          {
             //append the ip and codeptr before managing the breakpoint!
-            AssertFatal( !gEvalState.stack.empty(), "Empty eval stack on break!");
-            gEvalState.stack.last()->code = this;
-            gEvalState.stack.last()->ip = ip - 1;
+            AssertFatal( !gEvalState->stack.empty(), "Empty eval stack on break!");
+            gEvalState->stack.last()->code = this;
+            gEvalState->stack.last()->ip = ip - 1;
 
             U32 breakLine;
             findBreakLine(ip-1, breakLine, instruction);
@@ -1159,11 +1159,11 @@ execFinished:
       TelDebugger->popStackFrame();
 
    if ( popFrame )
-      gEvalState.popFrame();
+      gEvalState->popFrame();
 
    if(argv)
    {
-      if(gEvalState.traceOn)
+      if(gEvalState->traceOn)
       {
          traceBuffer[0] = 0;
          dStrcat(traceBuffer, "Leaving ");

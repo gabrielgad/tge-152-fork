@@ -18,7 +18,7 @@
 #include "console/console.h"
 #include "console/consoleInternal.h"
 #include "console/ast.h"
-#include "console/simbase.h"
+#include "console/simBase.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -379,10 +379,10 @@ PyObject* tgePyObject_call(tgePyObject *self, PyObject *args, PyObject *kw)
 				}
 				
 
-				SimObject *save = gEvalState.thisObject;
-				gEvalState.thisObject = o;
-				const char *ret = ent->execute(argc, argv, &gEvalState);
-				gEvalState.thisObject = save;
+				SimObject *save = gEvalState->thisObject;
+				gEvalState->thisObject = o;
+				const char *ret = ent->execute(argc, argv, gEvalState);
+				gEvalState->thisObject = save;
 
 				Py_DECREF(functionname);
 
@@ -523,7 +523,7 @@ PyObject* tgePythonGetArrayIndexName(PyObject* key)
 
 	}
 
-	if (pindex<0)
+	if (index<0)
 	{
 		PyErr_SetString(gTGEError, ("ARRAYGETITEM: negative index!"));
 		return NULL;

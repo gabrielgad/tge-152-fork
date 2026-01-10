@@ -207,6 +207,9 @@ Dictionary::Entry *Dictionary::lookup(StringTableEntry name)
 
 Dictionary::Entry *Dictionary::add(StringTableEntry name)
 {
+   if (!hashTable) {
+      return NULL;
+   }
    Entry *walk = hashTable->data[HashPointer(name) % hashTable->size];
    while(walk)
    {
@@ -404,7 +407,7 @@ void Dictionary::Entry::setStringValue(const char * value)
 /*
       if(!value[0] && name[0] == '$')
       {
-         gEvalState.globalVars.remove(this);
+         gEvalState->globalVars.remove(this);
          return;
       }
 */
@@ -519,24 +522,24 @@ ConsoleFunction(backtrace, void, 1, 1, "Print the call stack.")
    argc; argv;
    U32 totalSize = 1;
 
-   for(U32 i = 0; i < gEvalState.stack.size(); i++)
+   for(U32 i = 0; i < gEvalState->stack.size(); i++)
    {
-      totalSize += dStrlen(gEvalState.stack[i]->scopeName) + 3;
-      if(gEvalState.stack[i]->scopeNamespace && gEvalState.stack[i]->scopeNamespace->mName)
-         totalSize += dStrlen(gEvalState.stack[i]->scopeNamespace->mName) + 2;
+      totalSize += dStrlen(gEvalState->stack[i]->scopeName) + 3;
+      if(gEvalState->stack[i]->scopeNamespace && gEvalState->stack[i]->scopeNamespace->mName)
+         totalSize += dStrlen(gEvalState->stack[i]->scopeNamespace->mName) + 2;
    }
 
    char *buf = Con::getReturnBuffer(totalSize);
    buf[0] = 0;
-   for(U32 i = 0; i < gEvalState.stack.size(); i++)
+   for(U32 i = 0; i < gEvalState->stack.size(); i++)
    {
       dStrcat(buf, "->");
-      if(gEvalState.stack[i]->scopeNamespace && gEvalState.stack[i]->scopeNamespace->mName)
+      if(gEvalState->stack[i]->scopeNamespace && gEvalState->stack[i]->scopeNamespace->mName)
       {
-         dStrcat(buf, gEvalState.stack[i]->scopeNamespace->mName);
+         dStrcat(buf, gEvalState->stack[i]->scopeNamespace->mName);
          dStrcat(buf, "::");
       }
-      dStrcat(buf, gEvalState.stack[i]->scopeName);
+      dStrcat(buf, gEvalState->stack[i]->scopeName);
    }
    Con::printf("BackTrace: %s", buf);
 

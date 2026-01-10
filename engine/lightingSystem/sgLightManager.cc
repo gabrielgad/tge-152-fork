@@ -21,7 +21,9 @@
 #include "game/shadow.h"
 #include "lightingSystem/sgLightObject.h"
 #include "sim/netConnection.h"
+#ifndef DEDICATED
 #include "editor/worldEditor.h"
+#endif
 #include "platform/profiler.h"
 
 
@@ -874,6 +876,7 @@ void sgRelightFilter::sgInit()
 
 bool sgRelightFilter::sgAllowLighting(const Box3F &box, bool forcefilter)
 {
+#ifndef DEDICATED
 	if((sgRelightFilter::sgFilterRelight && sgRelightFilter::sgFilterRelightByDistance) || forcefilter)
 	{
 		if(!sgRelightFilter::sgFilterRelightVisible)
@@ -894,10 +897,12 @@ bool sgRelightFilter::sgAllowLighting(const Box3F &box, bool forcefilter)
 		if(!box.isOverlapped(lightbox))
 			return false;
 	}
+#endif
 
 	return true;
 }
 
+#ifndef DEDICATED
 void sgRelightFilter::sgRenderAllowedObjects(void *editor)
 {
 	U32 i;
@@ -906,7 +911,7 @@ void sgRelightFilter::sgRenderAllowedObjects(void *editor)
 	gServerContainer.findObjects(InteriorObjectType, sgFindObjectsCallback, &objects);
 
     const ColorI color(255, 0, 255);
-    
+
 	for(i = 0; i < objects.size(); i++)
 	{
 		SceneObject * obj = objects[i];
@@ -919,4 +924,5 @@ void sgRelightFilter::sgRenderAllowedObjects(void *editor)
 		worldeditor->renderObjectBox(obj, color);
 	}
 }
+#endif
 

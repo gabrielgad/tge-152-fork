@@ -74,13 +74,24 @@ bool Platform::setClipboard(const char *text) { return false; }
 GOldFont *createFont(const char *name, dsize_t size, U32 charset) { return NULL; }
 void PlatformBlitInit( void ) {}
 PlatformFont *createPlatformFont(const char *name, U32 size, U32 charset) { return NULL; }
-bool x86UNIXFont::create(const char *name, U32 size, U32 charset) { return false; }
+bool x86UNIXFont::create(const char *name, dsize_t size, U32 charset) { return false; }
 
 // #include <X11/Xlib.h>
 
 // void NotifySelectionEvent(XEvent& event)
 // {
 // }
+
+// Editor stubs (for dedicated server without editor)
+bool gEditingMission = false;
+
+// ModernizationKit stubs (graphics-only, not needed for dedicated server)
+#include "ModernizationKit/ModernizationKit.h"
+void MK::create() {}
+void MK::destroy() {}
+void MK::reset() {}
+void MK::resurrect() {}
+_VBOManager* MK::getVBO() { return NULL; }
 
 // Input stubs
 void Input::init() {}

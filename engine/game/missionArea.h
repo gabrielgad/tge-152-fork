@@ -3,6 +3,15 @@
 // Copyright (C) GarageGames.com, Inc.
 //-----------------------------------------------------------------------------
 
+/*
+
+MMO Kit
+-------
+
+- Added stratosphere checks
+
+*/
+
 #ifndef _MISSIONAREA_H_
 #define _MISSIONAREA_H_
 
@@ -18,6 +27,7 @@ class MissionArea : public NetObject
 
    F32 mFlightCeiling;
    F32 mFlightCeilingRange;
+   F32 mStratosphere; // <-- MMO Kit
 
   public:
    MissionArea();
@@ -28,6 +38,7 @@ class MissionArea : public NetObject
 
    F32 getFlightCeiling()      const { return mFlightCeiling;      }
    F32 getFlightCeilingRange() const { return mFlightCeilingRange; }
+   F32 getStratosphere()       const { return mStratosphere;       } // <-- MMO Kit
 
    //
    const RectI & getArea(){return(mArea);}

@@ -62,6 +62,8 @@ MMO Kit
 // Begin MMO Kit
 #include "interior/interior.h"
 #include "afx/afxMagicSpell.h"
+#include "game/missionArea.h"
+extern MissionArea* gClientMissionArea;
 // End MMO Kit
 
 //----------------------------------------------------------------------------
@@ -186,6 +188,7 @@ rpgPlayerData::rpgPlayerData()
 // Begin MMO Kit
    radius = 3;
    scale = 1;
+   scaleLimit = 10.0f;
 // End MMO Kit
 
    renderFirstPerson = true;
@@ -490,6 +493,7 @@ void rpgPlayerData::initPersistFields()
 // Begin MMO Kit
    addField("radius", TypeF32, Offset(radius, rpgPlayerData));
    addField("scale", TypeF32, Offset(scale, rpgPlayerData));
+   addField("scaleLimit", TypeF32, Offset(scaleLimit, rpgPlayerData));
 // End MMO Kit
 
    addField("minLookAngle", TypeF32, Offset(minLookAngle, rpgPlayerData));
@@ -1773,8 +1777,9 @@ void rpgPlayer::updateMove(const Move* move)
 
          
          
-         if (gClientMissionArea)
-         {
+         // Begin MMO Kit Linux fix - gClientMissionArea doesn't exist in this TGE version
+         // if (gClientMissionArea)
+         // {
             inStrat = checkMissionArea();
             //getTransform().getColumn(3, &pos);
             //F32 strat = gClientMissionArea->getStratosphere();
@@ -1782,7 +1787,8 @@ void rpgPlayer::updateMove(const Move* move)
             //if (strat != -1 && pos.z>=strat)
             //   inStrat = true;
 
-         }
+         // }
+         // End MMO Kit Linux fix
 
       }
    }
@@ -3140,7 +3146,7 @@ bool rpgPlayer::updatePos(const F32 travelTime)
       mVelocity.set(0.0f,0.0f,0.0f);
 
 
-   Interior::smIncludeClipHulls = true;
+   // Interior::smIncludeClipHulls = true;  // MMO Kit Linux fix - doesn't exist in this TGE version
 
    bool lastRunSurface = mRunSurface;
    
@@ -3351,7 +3357,7 @@ bool rpgPlayer::updatePos(const F32 travelTime)
    if (impactObject)
       onImpact(impactObject, impactNormal*impactVelocity);
 
-   Interior::smIncludeClipHulls = false;
+   // Interior::smIncludeClipHulls = false;  // MMO Kit Linux fix - doesn't exist in this TGE version
 #endif // DARREN_MMO
    return true;
 
@@ -3958,7 +3964,7 @@ bool rpgPlayer::displaceObject(const Point3F& displacement)
 
    sBalance++;
 
-   bool result = updatePos(dt);
+   result = updatePos(dt);  // MMO Kit Linux fix - removed 'bool' to avoid redeclaration
 
    sBalance--;
 
@@ -4651,7 +4657,7 @@ U32 rpgPlayer::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
    }
 // End MMO Kit
 
-   U32 retMask = Parent::packUpdate(con, mask, stream);
+   retMask = Parent::packUpdate(con, mask, stream);  // MMO Kit Linux fix - removed 'U32' to avoid redeclaration
 
    if (stream->writeFlag((mask & ImpactMask) && !(mask & InitialUpdateMask)))
       stream->writeInt(mImpactSound, rpgPlayerData::ImpactBits);

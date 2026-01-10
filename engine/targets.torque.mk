@@ -88,6 +88,7 @@ SOURCE.CORE=\
 	core/tokenizer.cc \
 	core/tVector.cc \
 	core/zipAggregate.cc \
+	core/zipCryptStream.cc \
 	core/zipHeaders.cc \
 	core/zipSubStream.cc \
         core/unicode.cc \
@@ -208,6 +209,7 @@ SOURCE.INTERIOR=\
 	interior/interiorResObjects.cc \
 	interior/interiorSubObject.cc \
 	interior/itfdump.asm \
+	interior/itfdump_c.cc \
 	interior/interiorMap.cc \
 	interior/lightUpdateGrouper.cc \
 	interior/mirrorSubObject.cc \
@@ -357,7 +359,9 @@ SOURCE.GAME.FX=\
 	game/fx/fxShapeReplicator.cc \
 	game/fx/fxSunLight.cc \
 	game/fx/lightning.cc \
+	game/fx/particle.cc \
 	game/fx/particleEmitter.cc \
+	game/fx/particleEmitterNode.cc \
 	game/fx/particleEngine.cc \
 	game/fx/precipitation.cc \
 	game/fx/splash.cc \
@@ -653,3 +657,140 @@ endif
 ifneq ($(wildcard $(EXE_NAME)_RELEASE.*),)
 	-$(RM)  $(EXE_NAME)_RELEASE*
 endif
+
+#----------------------------------------
+# MMO Kit RPG sources
+# NOTE: rpgTSDynamic.cc excluded - has compile errors (isDNActive, smMyVisibleDistanceMod not in SceneGraph)
+SOURCE.MMOKIT_RPG=\
+	mmokit-rpg/rpgSpawnPoint.cc \
+	mmokit-rpg/rpgWayPoint.cc \
+	mmokit-rpg/game/rpgPlayer.cc \
+	mmokit-rpg/game/rpgAIPlayer.cc \
+
+#----------------------------------------
+# Python bindings for TGE (pytge)
+SOURCE.PYTGE=\
+	mmokit-tgePython/tgePython.cc \
+	mmokit-tgePython/tgePyObject.cc \
+
+# Filter out 32-bit assembly files for 64-bit builds
+SOURCE.ENGINE.NO_ASM = $(filter-out %.asm,$(SOURCE.ENGINE))
+
+#----------------------------------------
+# Arcane FX (spell/effects system)
+SOURCE.AFX=\
+	afx/afxCamera.cc \
+	afx/afxChoreographer.cc \
+	afx/afxConstraint.cc \
+	afx/afxEffectron.cc \
+	afx/afxEffectVector.cc \
+	afx/afxEffectWrapper.cc \
+	afx/afxMagicMissile.cc \
+	afx/afxMagicMissile_TGE.cc \
+	afx/afxMagicSpell.cc \
+	afx/afxPhrase.cc \
+	afx/afxResidueMgr.cc \
+	afx/afxSelectron.cc \
+	afx/afxSpellBook.cc \
+	afx/arcaneFX.cc \
+	afx/ce/afxAnimClip.cc \
+	afx/ce/afxAnimLock.cc \
+	afx/ce/afxCameraShake.cc \
+	afx/ce/afxDamage.cc \
+	afx/ce/afxLight.cc \
+	afx/ce/afxMachineGun.cc \
+	afx/ce/afxModel.cc \
+	afx/ce/afxModel_TGE.cc \
+	afx/ce/afxMooring.cc \
+	afx/ce/afxMooring_TGE.cc \
+	afx/ce/afxMultiLight.cc \
+	afx/ce/afxParticleEmitter.cc \
+	afx/ce/afxPhysicalZone.cc \
+	afx/ce/afxProjectile.cc \
+	afx/ce/afxScriptEvent.cc \
+	afx/ce/afxStaticShape.cc \
+	afx/ce/afxVolumeLight.cc \
+	afx/ce/afxZodiac.cc \
+	afx/ce/afxZodiacMgr.cc \
+	afx/ce/afxZodiacMgr_TGE.cc \
+	afx/ea/afxEA_AnimClip.cc \
+	afx/ea/afxEA_AnimLock.cc \
+	afx/ea/afxEA_CameraShake.cc \
+	afx/ea/afxEA_Damage.cc \
+	afx/ea/afxEA_Debris.cc \
+	afx/ea/afxEA_Explosion.cc \
+	afx/ea/afxEA_Light.cc \
+	afx/ea/afxEA_MachineGun.cc \
+	afx/ea/afxEA_Model.cc \
+	afx/ea/afxEA_Mooring.cc \
+	afx/ea/afxEA_MultiLight.cc \
+	afx/ea/afxEA_ParticleEmitter.cc \
+	afx/ea/afxEA_PhysicalZone.cc \
+	afx/ea/afxEA_Projectile.cc \
+	afx/ea/afxEA_ScriptEvent.cc \
+	afx/ea/afxEA_Sound.cc \
+	afx/ea/afxEA_StaticShape.cc \
+	afx/ea/afxEA_TLKLight.cc \
+	afx/ea/afxEA_VolumeLight.cc \
+	afx/ea/afxEA_Zodiac.cc \
+	afx/rpg/afxRPGMagicSpell.cc \
+	afx/ui/afxEventCatchAll.cc \
+	afx/ui/afxSpellButton.cc \
+	afx/ui/afxSpellCastBar.cc \
+	afx/ui/afxStatusBar.cc \
+	afx/ui/afxStatusBox.cc \
+	afx/ui/afxStatusLabel.cc \
+	afx/ui/afxTSCtrl.cc \
+	afx/util/afxAnimCurve.cc \
+	afx/util/afxCurve3D.cc \
+	afx/util/afxCurveEval.cc \
+	afx/util/afxEase.cc \
+	afx/util/afxPath3D.cc \
+	afx/util/afxPath.cc \
+	afx/xm/afxXfmMod.cc \
+	afx/xm/afxXM_Aim.cc \
+	afx/xm/afxXM_Freeze.cc \
+	afx/xm/afxXM_GroundConform.cc \
+	afx/xm/afxXM_HeightSampler.cc \
+	afx/xm/afxXM_MountedImageNode.cc \
+	afx/xm/afxXM_Offset.cc \
+	afx/xm/afxXM_Oscillate.cc \
+	afx/xm/afxXM_PathConform.cc \
+	afx/xm/afxXM_RandomRot.cc \
+	afx/xm/afxXM_Scale.cc \
+	afx/xm/afxXM_Shockwave.cc \
+	afx/xm/afxXM_Spin.cc \
+
+SOURCE.PYTGE_ALL = \
+	$(SOURCE.ENGINE.NO_ASM) \
+	$(SOURCE.MMOKIT_RPG) \
+	$(SOURCE.AFX) \
+	$(SOURCE.PYTGE)
+
+SOURCE.PYTGE_ALL.OBJ:=$(addprefix $(DIR.OBJ)/, $(addsuffix $O, $(basename $(SOURCE.PYTGE_ALL))) )
+
+#----------------------------------------
+# pytge shared library target
+PYTHON_CFLAGS = -I/usr/include/python2.7 -fPIC
+PYTHON_LDFLAGS = -lpython2.7 -shared
+
+pytge: $(DIR.OBJ)/pytge.so
+
+DIR.LIST.PYTGE = $(addprefix $(DIR.OBJ)/, $(sort $(dir $(SOURCE.PYTGE_ALL))))
+
+$(DIR.OBJ)/pytge.so: CFLAGS += -DDEDICATED -DDARREN_MMO -DTORQUE_LIB -fPIC $(INCLUDES_$(OS)) -I. $(PYTHON_CFLAGS)
+
+$(DIR.OBJ)/pytge.so: LIB.PATH +=../lib/$(DIR.OBJ)
+
+$(DIR.OBJ)/pytge.so: LINK.LIBS.GENERAL = \
+	$(LINK.LIBS.SERVER) \
+	$(PRE.LIBRARY.LIB)ljpeg$(EXT.LIB) \
+	$(PRE.LIBRARY.LIB)lpng$(EXT.LIB) \
+	$(PRE.LIBRARY.LIB)lungif$(EXT.LIB) \
+	$(PRE.LIBRARY.LIB)zlib$(EXT.LIB) \
+	$(PYTHON_LDFLAGS)
+
+$(DIR.OBJ)/pytge.so: $(DIR.OBJ) $(DIR.LIST.PYTGE) $(SOURCE.PYTGE_ALL.OBJ)
+	${CHECK_LINK_FILE}
+	$(COMPILER.cc) -shared -o $@ $(SOURCE.PYTGE_ALL.OBJ) $(addprefix -L, $(LIB.PATH)) $(LINK.LIBS.GENERAL)
+	cp $(DIR.OBJ)/pytge.so ../example/

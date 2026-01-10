@@ -51,7 +51,7 @@ public:
    ~CodeBlock();
 
    StringTableEntry name;
-   //static StringTableEntry sfnNameSpace; // pyTorque
+   static StringTableEntry sfnNameSpace; // pyTorque
 
    char *globalStrings;
    char *functionStrings;

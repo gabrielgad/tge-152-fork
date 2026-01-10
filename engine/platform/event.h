@@ -12,6 +12,11 @@
 
 #include "platform/types.h"
 
+// Offset macro needed for header size calculations
+#ifndef Offset
+#define Offset(m,T) ((int)(&((T *)1)->m) - 1)
+#endif
+
 typedef int NetConnectionId;
 
 /// Generic network address

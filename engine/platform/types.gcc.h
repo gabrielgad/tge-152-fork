@@ -1,4 +1,3 @@
-
 #ifndef INCLUDED_TYPES_GCC_H
 #define INCLUDED_TYPES_GCC_H
 
@@ -44,7 +43,9 @@ typedef unsigned long long  U64;
 #elif defined(linux)
 #  define TORQUE_OS_STRING "Linux"
 #  define TORQUE_OS_LINUX
-#  define TORQUE_SUPPORTS_NASM
+#  if !defined(__x86_64__)
+#    define TORQUE_SUPPORTS_NASM
+#  endif
 #  define TORQUE_SUPPORTS_GCC_INLINE_X86_ASM
 #  include "platform/types.posix.h"
 
@@ -65,7 +66,7 @@ typedef unsigned long long  U64;
 #elif defined(__APPLE__)
 #  define TORQUE_OS_MAC
 #  define TORQUE_OS_MAC_OSX
-#if defined(i386)
+#if defined(i386) || defined(__x86_64__)
 #  define TORQUE_SUPPORTS_NASM
 #endif
 #  include "platform/types.ppc.h"
@@ -78,12 +79,18 @@ typedef unsigned long long  U64;
 
 //--------------------------------------
 // Identify the CPU
-#if defined(i386)
+#if defined(i386) || defined(__i386__) || defined(__i386)
 #  define TORQUE_CPU_STRING "Intel x86"
 #  define TORQUE_CPU_X86
 #  define TORQUE_LITTLE_ENDIAN
 
-#elif defined(__ppc__)
+#elif defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64)
+#  define TORQUE_CPU_STRING "Intel x86-64"
+#  define TORQUE_CPU_X86
+#  define TORQUE_CPU_X86_64
+#  define TORQUE_LITTLE_ENDIAN
+
+#elif defined(__ppc__) || defined(__powerpc__) || defined(__PPC__)
 #  define TORQUE_CPU_STRING "PowerPC"
 #  define TORQUE_CPU_PPC
 #  define TORQUE_BIG_ENDIAN
@@ -94,4 +101,3 @@ typedef unsigned long long  U64;
 
 
 #endif // INCLUDED_TYPES_GCC_H
-

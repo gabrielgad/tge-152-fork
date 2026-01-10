@@ -607,8 +607,8 @@ ConsoleFunction(NextToken,const char *,4,4,"nextToken(str,token,delim)")
          *str++ = 0;
 
       // set local variable if inside a function
-      if (gEvalState.stack.size() && 
-         gEvalState.stack.last()->scopeName)
+      if (gEvalState->stack.size() && 
+         gEvalState->stack.last()->scopeName)
          Con::setLocalVariable(token,tmp);
       else
          Con::setVariable(token,tmp);
@@ -1147,13 +1147,13 @@ ConsoleFunction(export, void, 2, 4, "export(searchString [, fileName [,append]])
       if (Con::expandScriptFilename(scriptFilenameBuffer, sizeof(scriptFilenameBuffer), argv[2]))
          filename = scriptFilenameBuffer;
 
-   gEvalState.globalVars.exportVariables(argv[1], filename, append);
+   gEvalState->globalVars.exportVariables(argv[1], filename, append);
 }
 
 ConsoleFunction(deleteVariables, void, 2, 2, "deleteVariables(wildCard)")
 {
    argc;
-   gEvalState.globalVars.deleteVariables(argv[1]);
+   gEvalState->globalVars.deleteVariables(argv[1]);
 }
 
 //----------------------------------------------------------------
@@ -1161,8 +1161,8 @@ ConsoleFunction(deleteVariables, void, 2, 2, "deleteVariables(wildCard)")
 ConsoleFunction(trace, void, 2, 2, "trace(bool)")
 {
    argc;
-   gEvalState.traceOn = dAtob(argv[1]);
-   Con::printf("Console trace is %s", gEvalState.traceOn ? "on." : "off.");
+   gEvalState->traceOn = dAtob(argv[1]);
+   Con::printf("Console trace is %s", gEvalState->traceOn ? "on." : "off.");
 }
 
 //----------------------------------------------------------------
