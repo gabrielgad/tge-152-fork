@@ -251,8 +251,12 @@ template<class T> inline U32 Vector<T>::setSize(U32 size)
 
 template<class T> inline void Vector<T>::increment(U32 delta)
 {
+   U32 oldCount = mElementCount;
    if ((mElementCount += delta) > mArraySize)
       resize(mElementCount);
+   // Zero-initialize new elements to prevent garbage pointers in nested Vectors
+   if (delta > 0 && mArray)
+      dMemset(&mArray[oldCount], 0, delta * sizeof(T));
 }
 
 template<class T> inline void Vector<T>::decrement(U32 delta)
