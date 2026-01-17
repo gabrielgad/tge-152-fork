@@ -2636,22 +2636,29 @@ TSMesh * TSMesh::assembleMesh(U32 meshType, bool skip)
       {
          case StandardMeshType :
          {
+            // Reinitialize temp mesh to avoid stale vector pointers
+            destructInPlace(&tempStandardMesh);
+            constructInPlace(&tempStandardMesh);
             ret = (S32*)&tempStandardMesh;
             mesh = &tempStandardMesh;
-            mesh->mUVs.clear();  // Clear stale UV data before reuse
             alloc.allocShape32(sizeof(TSMesh)>>2);
             break;
          }
          case SkinMeshType     :
          {
+            // Reinitialize temp mesh to avoid stale vector pointers
+            destructInPlace(&tempSkinMesh);
+            constructInPlace(&tempSkinMesh);
             ret = (S32*)&tempSkinMesh;
             mesh = &tempSkinMesh;
-            mesh->mUVs.clear();  // Clear stale UV data before reuse
             alloc.allocShape32(sizeof(TSSkinMesh)>>2);
             break;
          }
          case DecalMeshType    :
          {
+            // Reinitialize temp mesh to avoid stale vector pointers
+            destructInPlace(&tempDecalMesh);
+            constructInPlace(&tempDecalMesh);
             ret = (S32*)&tempDecalMesh;
             decal = &tempDecalMesh;
             alloc.allocShape32(sizeof(TSDecalMesh)>>2);
@@ -2659,9 +2666,11 @@ TSMesh * TSMesh::assembleMesh(U32 meshType, bool skip)
          }
          case SortedMeshType   :
          {
+            // Reinitialize temp mesh to avoid stale vector pointers
+            destructInPlace(&tempSortedMesh);
+            constructInPlace(&tempSortedMesh);
             ret = (S32*)&tempSortedMesh;
             mesh = &tempSortedMesh;
-            mesh->mUVs.clear();  // Clear stale UV data before reuse
             alloc.allocShape32(sizeof(TSSortedMesh)>>2);
             break;
          }
