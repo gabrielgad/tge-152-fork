@@ -2638,6 +2638,7 @@ TSMesh * TSMesh::assembleMesh(U32 meshType, bool skip)
          {
             ret = (S32*)&tempStandardMesh;
             mesh = &tempStandardMesh;
+            mesh->mUVs.clear();  // Clear stale UV data before reuse
             alloc.allocShape32(sizeof(TSMesh)>>2);
             break;
          }
@@ -2645,6 +2646,7 @@ TSMesh * TSMesh::assembleMesh(U32 meshType, bool skip)
          {
             ret = (S32*)&tempSkinMesh;
             mesh = &tempSkinMesh;
+            mesh->mUVs.clear();  // Clear stale UV data before reuse
             alloc.allocShape32(sizeof(TSSkinMesh)>>2);
             break;
          }
@@ -2659,6 +2661,7 @@ TSMesh * TSMesh::assembleMesh(U32 meshType, bool skip)
          {
             ret = (S32*)&tempSortedMesh;
             mesh = &tempSortedMesh;
+            mesh->mUVs.clear();  // Clear stale UV data before reuse
             alloc.allocShape32(sizeof(TSSortedMesh)>>2);
             break;
          }
