@@ -352,6 +352,7 @@ SOURCE.GAME.FPS=\
 
 SOURCE.GAME.FX=\
 	game/fx/cameraFXMgr.cc \
+	game/fx/daynight.cc \
 	game/fx/explosion.cc \
 	game/fx/fxFoliageReplicator.cc \
 	game/fx/fxGrassReplicator.cc \
