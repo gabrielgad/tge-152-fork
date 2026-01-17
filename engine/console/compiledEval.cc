@@ -321,8 +321,8 @@ breakContinue:
                fnNamespace  = U32toSTE(code[ip+1]);
                fnPackage    = U32toSTE(code[ip+2]);
                bool hasBody = bool(code[ip+3]);
-			   //CodeBlock::sfnNameSpace=fnNamespace; // pytorque
-               
+			   CodeBlock::sfnNameSpace=fnNamespace; // pytorque
+
                Namespace::unlinkPackages();
                ns = Namespace::find(fnNamespace, fnPackage);
                ns->addFunction(fnName, this, hasBody ? ip : 0);// if no body, set the IP to 0
@@ -904,7 +904,7 @@ breakContinue:
             // This deals with a function that is potentially living in a namespace.
             fnNamespace = U32toSTE(code[ip+1]);
             fnName      = U32toSTE(code[ip]);
-			//CodeBlock::sfnNameSpace=fnNamespace; // pytorque
+			CodeBlock::sfnNameSpace=fnNamespace; // pytorque
 
             // Try to look it up.
             ns = Namespace::find(fnNamespace);
@@ -1009,7 +1009,7 @@ breakContinue:
                }
                else
                {
-                  //CodeBlock::sfnNameSpace=nsEntry->mNamespace->mName; // pytorque
+                  CodeBlock::sfnNameSpace=nsEntry->mNamespace->mName; // pytorque
 				   switch(nsEntry->mType)
                   {
                      case Namespace::Entry::StringCallbackType:
@@ -1153,7 +1153,7 @@ breakContinue:
       }
    }
 execFinished:
-	//CodeBlock::sfnNameSpace=NULL; // pytorque
+	CodeBlock::sfnNameSpace=NULL; // pytorque
 
    if ( telDebuggerOn && setFrame < 0 )
       TelDebugger->popStackFrame();
