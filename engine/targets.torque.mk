@@ -354,6 +354,7 @@ SOURCE.GAME.FX=\
 	game/fx/cameraFXMgr.cc \
 	game/fx/explosion.cc \
 	game/fx/fxFoliageReplicator.cc \
+	game/fx/fxGrassReplicator.cc \
 	game/fx/fxLight.cc \
 	game/fx/fxRenderObject.cc \
 	game/fx/fxShapeReplicator.cc \
@@ -365,6 +366,7 @@ SOURCE.GAME.FX=\
 	game/fx/particleEngine.cc \
 	game/fx/precipitation.cc \
 	game/fx/splash.cc \
+	game/fx/twSurfaceReference.cc \
 	game/fx/underLava.cc \
 	game/fx/weatherLightning.cpp
 
@@ -676,6 +678,18 @@ SOURCE.PYTGE=\
 # Filter out 32-bit assembly files for 64-bit builds
 SOURCE.ENGINE.NO_ASM = $(filter-out %.asm,$(SOURCE.ENGINE))
 
+# ASM files that don't have conflicting C versions and should be included for 32-bit builds
+# Note: itfdump.asm conflicts with itfdump_c.cc (both define same symbols)
+SOURCE.ASM.SAFE = \
+	terrain/blender_asm.asm \
+	math/mMathAMD_ASM.asm \
+	math/mMathSSE_ASM.asm \
+	platform/platformCPUInfo.asm
+
+# Filter out conflicting C files when ASM is used
+# itfdump_c.cc provides C fallback for itfdump.asm - can't have both
+SOURCE.ENGINE.WITH_ASM = $(filter-out interior/itfdump_c.cc,$(SOURCE.ENGINE))
+
 #----------------------------------------
 # Arcane FX (spell/effects system)
 SOURCE.AFX=\
@@ -761,8 +775,10 @@ SOURCE.AFX=\
 	afx/xm/afxXM_Shockwave.cc \
 	afx/xm/afxXM_Spin.cc \
 
+# Use SOURCE.ENGINE.WITH_ASM for 32-bit builds (includes assembly, excludes conflicting C fallbacks)
+# The assembly files (blender_asm.asm, itfdump.asm) are 32-bit x86 NASM code
 SOURCE.PYTGE_ALL = \
-	$(SOURCE.ENGINE.NO_ASM) \
+	$(SOURCE.ENGINE.WITH_ASM) \
 	$(SOURCE.MMOKIT_RPG) \
 	$(SOURCE.AFX) \
 	$(SOURCE.PYTGE)
